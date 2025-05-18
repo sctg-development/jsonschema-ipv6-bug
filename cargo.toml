@@ -1,0 +1,11 @@
+[package]
+name = "jsonschema-ipv6-bug"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "A minimal repository demonstrating a bug in jsonschema 0.30.0 with IPv6 validation"
+
+[dependencies]
+jsonschema = "0.30.0"
+serde_json = "1.0"
+anyhow = "1.0"
