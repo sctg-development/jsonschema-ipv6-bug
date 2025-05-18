@@ -3,7 +3,6 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-// filepath: /Users/rlemeill/Development/jsonschema-ipv6-bug/src/main.rs
 use anyhow::Result;
 use jsonschema::{self};
 use serde_json::json;
