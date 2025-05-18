@@ -1,19 +1,22 @@
-# jsonschema IPv6 Validation Bug
+# jsonschema Format Validation Configuration
 
-This repository demonstrates a bug in the `jsonschema` crate (version 0.30.0) where it incorrectly validates certain IPv6 addresses.
+This repository demonstrates how to properly configure the `jsonschema` crate (version 0.30.0) to correctly validate IPv6 addresses.
 
-## Bug Description
+## Understanding Format Validation in jsonschema
 
-The `jsonschema` crate (v0.30.0) fails to properly validate IPv6 addresses when using the `format: "ipv6"` validation in a JSON Schema with draft-2020-12. Specifically, it allows invalid IPv6 addresses like `2001:0db8:85a3:0000:0000:8a2e:0370:7334:5678` to pass validation, despite having too many segments (9 instead of the maximum 8).
+The `jsonschema` crate requires explicitly enabling format validation via the `should_validate_formats(true)` method. This is not a bug but rather by design - format validation is optional according to the JSON Schema specification.
 
-## Steps to Reproduce
+## Correct Configuration
 
-1. Clone this repository
-2. Run `cargo run`
+To properly validate formats like IPv6 addresses, the validator must be configured as follows:
 
-## Expected Output
+```rust
+let validator = jsonschema::draft202012::options()
+    .should_validate_formats(true)  // This line is required!
+    .build(&schema)?;
+```
 
-The validation should fail for invalid IPv6 addresses like `2001:0db8:85a3:0000:0000:8a2e:0370:7334:5678`.
+Without this configuration, format validation checks will not be performed, and invalid IPv6 addresses would pass validation.
 
 ## Validation Schema
 
@@ -40,27 +43,33 @@ The validation should fail for invalid IPv6 addresses like `2001:0db8:85a3:0000:
 }
 ```
 
-## Testing with jsonschemavalidator.net
+## Testing With Proper Configuration
 
-https://www.jsonschemavalidator.net/s/W2b3vHJC
+When properly configured with `.should_validate_formats(true)`, the crate correctly:
 
-## Actual Output
+- Validates proper IPv6 addresses like `2001:0db8:85a3:0000:0000:8a2e:0370:7334`
+- Rejects invalid addresses like `2001:0db8:85a3:0000:0000:8a2e:0370:7334:5678` (too many segments)
 
-The validation incorrectly passes for invalid IPv6 addresses.
+## Steps to Demonstrate
 
-## Environment Information
+1. Clone this repository
+2. Run `cargo run`
+3. Observe that invalid IPv6 addresses correctly fail validation
 
-- jsonschema: 0.30.0
-- Rust: 1.86.0 (but likely affects all versions)
-- OS: Darwin Kernel Version 24.5.0 (x86_64)
+## Additional Information
 
-## Technical Analysis
+The solution was confirmed by the crate maintainer in [GitHub Issue #743](https://github.com/Stranger6667/jsonschema/issues/743#issuecomment-2888889116).
 
-The `jsonschema` crate's implementation of the IPv6 format validation does not properly check if the IPv6 address has the correct number of segments. IPv6 addresses must have exactly 8 segments, but the current implementation allows addresses with more segments to pass validation.
+## Technical Details
 
 A valid IPv6 address must:
+
 - Have exactly 8 segments (when fully expanded)
 - Each segment must be a valid hexadecimal value between 0 and FFFF
 - Can be compressed using the `::` notation to represent one or more groups of zeros
 
-In RFC 5952, the format of IPv6 addresses is clearly defined, and addresses like `2001:0db8:85a3:0000:0000:8a2e:0370:7334:5678` are invalid because they have 9 segments.
+## Environment Information
+
+- jsonschema: 0.30.0
+- Rust: 1.86.0
+- OS: Darwin Kernel Version 24.5.0 (x86_64)

@@ -51,7 +51,9 @@ fn main() -> Result<()> {
     ];
 
     // Create validator
-    let validator = jsonschema::draft202012::new(&schema)?;
+    let validator = jsonschema::draft202012::options()
+        .should_validate_formats(true)
+        .build(&schema)?;
 
     // Test valid addresses
     println!("Testing VALID IPv4 or IPv6 addresses (all should pass):");
